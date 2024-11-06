@@ -64,7 +64,7 @@ public class Selections {
         System.out.println("Select a player: ");
         String playerString = mReader.readLine();
         int playerNumber = Integer.parseInt(playerString.trim());
-        return mPlayers[playerNumber];
+        return mPlayers[playerNumber -= 1];
     }
 
     private void showTeams() {
