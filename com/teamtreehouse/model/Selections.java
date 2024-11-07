@@ -22,12 +22,13 @@ public class Selections {
         mMenu.put("add", "Add player to a team");
         mMenu.put("remove", "Remove player from a team");
         mMenu.put("report", "View a report of a team by height");
+        mMenu.put("roster", "View team roster");
         mMenu.put("quit", "Exits the program");
 
     }
 
     private String promptAction() throws IOException {
-        System.out.printf("Menu%n");
+        System.out.printf("%nMenu%n");
         for (Map.Entry<String, String> option : mMenu.entrySet()) {
             System.out.printf("%s: %s%n", option.getKey(), option.getValue());
         }
@@ -107,7 +108,32 @@ public class Selections {
 
     private void showHeightReport(Team team) {
         List<Player> players = team.getTeamPlayers();
+        Map<String, ArrayList<Player>> heightMap = new HashMap<>();
+        heightMap.put("35in - 40in", new ArrayList<>());
+        heightMap.put("41in - 46in", new ArrayList<>());
+        heightMap.put("47in - 50in", new ArrayList<>());
+        for (Player player : players) {
+            int playerHeight = player.getHeightInInches();
+            if (playerHeight >= 35 && playerHeight <= 40) {
+                heightMap.get("35in - 40in").add(player);
+            } else if (playerHeight >= 41 && playerHeight <= 46) {
+                heightMap.get("41in - 46in").add(player);
+            } else if (playerHeight >= 47 && playerHeight <= 50) {
+                heightMap.get("47in - 50in").add(player);
+            }
+        }
 
+        for (Map.Entry<String, ArrayList<Player>> entry : heightMap.entrySet()) {
+            System.out.printf("%s:%n",
+                    entry.getKey());
+            for(Player player : entry.getValue()) {
+                System.out.printf("first name: %s last name: %s  height in inches: %d previous experience: %s %n",
+                        player.getFirstName(),
+                        player.getLastName(),
+                        player.getHeightInInches(),
+                        player.isPreviousExperience());
+            }
+        }
     }
 
 
@@ -159,12 +185,16 @@ public class Selections {
                                             removalTeam.getName());
                                 }
                         break;
-                    case "height report":
+                    case "report":
                         Team heightReportTeam = promptSelectTeam();
                         showHeightReport(heightReportTeam);
                         break;
                     case "quit":
                         System.out.println("Goodbye!");
+                        break;
+                    case "roster":
+                        Team rosterTeam = promptSelectTeam();
+                        showPlayersOnTeam(rosterTeam);
                         break;
                     default:
                         System.out.printf("Unknown choice:  '%s'. Try again.  %n%n%n",
