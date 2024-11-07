@@ -40,4 +40,17 @@ public class Team {
         }
         return false;
    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Team)) return false;
+        Team team = (Team) o;
+        return mName.equals(team.mName);
+    }
+
+    @Override
+    public int hashCode() {
+        return mName.hashCode();
+    }
 }

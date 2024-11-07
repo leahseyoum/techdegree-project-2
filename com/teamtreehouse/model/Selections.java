@@ -10,21 +10,24 @@ public class Selections {
     private Map<String, String> mMenu;
     private TeamsCollection mTeamsCollection;
     private Player[] mPlayers;
+    private List<Player> notAvailablePlayers;
 
     public Selections(TeamsCollection teamsCollection) {
         mTeamsCollection = teamsCollection;
         mReader = new BufferedReader(new InputStreamReader(System.in));
         mPlayers = Players.load();
+        notAvailablePlayers = new ArrayList<>();
         mMenu = new HashMap<>();
         mMenu.put("create", "Create a new team");
         mMenu.put("add", "Add player to a team");
         mMenu.put("remove", "Remove player from a team");
-        mMenu.put("quit", "Exit the program");
+        mMenu.put("report", "View a report of a team by height");
+        mMenu.put("quit", "Exits the program");
 
     }
 
     private String promptAction() throws IOException {
-        System.out.printf("Your options are:%n");
+        System.out.printf("Menu%n");
         for (Map.Entry<String, String> option : mMenu.entrySet()) {
             System.out.printf("%s: %s%n", option.getKey(), option.getValue());
         }
@@ -33,14 +36,15 @@ public class Selections {
         return choice.trim().toLowerCase();
     }
 
+
     private String promptNewTeamName() throws IOException {
-        System.out.println("Choose a team name: ");
+        System.out.println("What is the team name: ");
         String teamName = mReader.readLine();
         return teamName.trim().toLowerCase();
     }
 
     private String promptNewTeamCoach() throws IOException {
-        System.out.println("Choose a team coach: ");
+        System.out.println("What is the coach name: ");
         String teamCoach = mReader.readLine();
         return teamCoach.trim().toLowerCase();
     }
@@ -48,16 +52,21 @@ public class Selections {
     private void showPlayers() {
         int i = 1;
         for (Player player : mPlayers) {
+            if (notAvailablePlayers.contains(player)) {
+                i++;
+                continue;
+            }
             System.out.printf("%d). first name: %s last name: %s  height in inches: %d previous experience: %s %n",
                     i,
                     player.getFirstName(),
                     player.getLastName(),
                     player.getHeightInInches(),
                     player.isPreviousExperience());
-            i++;
 
+            i++;
         }
     }
+
 
     private Player promptSelectPlayer() throws IOException {
         System.out.println("Select a player by number: ");
@@ -96,6 +105,11 @@ public class Selections {
         }
     }
 
+    private void showHeightReport(Team team) {
+        List<Player> players = team.getTeamPlayers();
+
+    }
+
 
     public void run() {
         String choice = "";
@@ -107,16 +121,24 @@ public class Selections {
                         String teamName = promptNewTeamName();
                         String teamCoach = promptNewTeamCoach();
                         Team newTeam = new Team(teamName, teamCoach);
-                        mTeamsCollection.addTeam(newTeam);
+                        boolean createResult = mTeamsCollection.addTeam(newTeam);
+                        if (createResult) {
+                            System.out.printf("%s coached by %s added. %n",
+                                    teamName,
+                                    teamCoach);
+                        } else {
+                            System.out.println("Cannot create duplicate team");
+                        }
                         break;
                     case "add":
                         Team team = promptSelectTeam();
                         showPlayers();
                         Player player = promptSelectPlayer();
-                        boolean result = team.addPlayer(player);
-                        if (!result) {
+                        boolean addResult = team.addPlayer(player);
+                        if (!addResult) {
                             System.out.printf("You cannot add this player %n");
                         } else {
+                            notAvailablePlayers.add(player);
                             System.out.printf("%s %s added to %s %n%n",
                                     player.getFirstName(),
                                     player.getLastName(),
@@ -136,6 +158,10 @@ public class Selections {
                                             removalPlayer.getLastName(),
                                             removalTeam.getName());
                                 }
+                        break;
+                    case "height report":
+                        Team heightReportTeam = promptSelectTeam();
+                        showHeightReport(heightReportTeam);
                         break;
                     case "quit":
                         System.out.println("Goodbye!");

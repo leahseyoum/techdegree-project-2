@@ -2,23 +2,29 @@ package com.teamtreehouse.model;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.Comparator;
 
 public class TeamsCollection {
-    private List<Team> mTeams;
+    private Set<Team> mTeams;
 
     public TeamsCollection() {
-        mTeams = new ArrayList<Team>();
+        mTeams = new HashSet<Team>();
     }
 
 
-    public void addTeam(Team team) {
-        mTeams.add(team);
+    public boolean addTeam(Team team) {
+        if (mTeams.add(team)){
+            return true;
+        }
+        return false;
     }
 
-    public List<Team> getTeams() {
-        mTeams.sort( new Comparator<Team>() {
+    public Set<Team> getTeams() {
+        List<Team> list = new ArrayList<>(mTeams);
+        list.sort( new Comparator<Team>() {
             @Override
             public int compare(Team o1, Team o2) {
                 return o1.getName().compareTo(o2.getName());
@@ -35,6 +41,8 @@ public class TeamsCollection {
         }
         return null;
     }
+
+
 
 
 }
