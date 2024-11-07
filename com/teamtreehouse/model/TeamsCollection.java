@@ -1,6 +1,11 @@
 package com.teamtreehouse.model;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
 
 public class TeamsCollection {
     private Set<Team> mTeams;
@@ -14,10 +19,7 @@ public class TeamsCollection {
         if (mTeams.size() >= maxNumberOfTeams) {
             return false;
         }
-        if (mTeams.add(team)){
-            return true;
-        }
-        return false;
+        return mTeams.add(team);
     }
 
 

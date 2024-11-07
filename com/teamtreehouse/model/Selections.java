@@ -10,14 +10,12 @@ public class Selections {
     private Map<String, String> mMenu;
     private TeamsCollection mTeamsCollection;
     private List<Player> mPlayers;
-    private List<Player> notAvailablePlayers;
     private Queue<Player> mWaitingList;
 
     public Selections(TeamsCollection teamsCollection) {
         mTeamsCollection = teamsCollection;
         mReader = new BufferedReader(new InputStreamReader(System.in));
         mPlayers = new ArrayList<>(Arrays.asList(Players.load()));
-//        notAvailablePlayers = new ArrayList<>();
         mWaitingList = new ArrayDeque<>();
         mMenu = new HashMap<>();
         mMenu.put("create", "Create a new team");
@@ -27,6 +25,7 @@ public class Selections {
         mMenu.put("report", "View a report of a team by height");
         mMenu.put("balance", "View a report teams by experience");
         mMenu.put("roster", "View team roster");
+        mMenu.put("generate", "Generate fair teams");
         mMenu.put("quit", "Exits the program");
 
     }
@@ -69,13 +68,38 @@ public class Selections {
         return mTeamsCollection.getTeamByName(finalTeamString);
     }
 
+    public Player promptCreatePlayer() throws IOException {
+        System.out.println("Creating a new player");
+        System.out.println("What is the players first name?");
+        String firstName = mReader.readLine().trim();
+        System.out.println("What is the players last name?");
+        String lastName = mReader.readLine().trim();
+        System.out.println("What is the players height in inches?");
+        int height = Integer.parseInt(mReader.readLine().trim());
+        System.out.println("What is the players previous experience?");
+        boolean experience = Boolean.parseBoolean(mReader.readLine().trim());
+        return new Player(firstName, lastName, height, experience);
+    }
+
+    private void promptReplacePlayer(Team team) throws IOException {
+        if (!mWaitingList.isEmpty()) {
+
+            System.out.println("Do you want to add a player from the waiting list? Yes or No:");
+            String response = mReader.readLine().trim();
+            if (response.equalsIgnoreCase("yes")) {
+                Player player = removePlayerFromWaitingList();
+                team.addPlayer(player);
+                System.out.printf("%s %s was added to %s",
+                        player.getFirstName(),
+                        player.getLastName(),
+                        team.getName());
+            }
+        }
+    }
+
     private void showPlayers() {
         int i = 1;
         for (Player player : mPlayers) {
-//            if (notAvailablePlayers.contains(player)) {
-//                i++;
-//                continue;
-//            }
             System.out.printf("%d). first name: %s last name: %s  height in inches: %d previous experience: %s %n",
                     i,
                     player.getFirstName(),
@@ -91,8 +115,7 @@ public class Selections {
     private void showTeams() {
         int i = 1;
         for (Team team : mTeamsCollection.getTeams()) {
-            System.out.printf("%d). %s %n",
-                    i,
+            System.out.printf(" %s %n",
                     team.getName());
             i++;
         }
@@ -102,6 +125,8 @@ public class Selections {
         Set<Player> players = team.getTeamPlayers();
         Set<Player> sortedSet = new TreeSet<>(players);
         int i = 1;
+        System.out.printf("%s%n",
+                team.getName());
         for (Player player : sortedSet) {
             System.out.printf("%d). first name: %s last name: %s  height in inches: %d previous experience: %s %n",
                     i,
@@ -112,24 +137,6 @@ public class Selections {
             i++;
 
         }
-    }
-
-    private Player selectAvailablePlayer() throws IOException {
-        int idx = promptSelectPlayerIdx();
-        if (idx == -1 || idx > mPlayers.size()) {
-            return null;
-        }
-        return mPlayers.get(idx);
-    }
-
-    private Player selectPlayerFromTeam(Set<Player> teamPlayers) throws IOException {
-        List <Player> tempArrayList = new ArrayList<>(teamPlayers);
-        Collections.sort(tempArrayList);
-        int idx = promptSelectPlayerIdx();
-        if (idx == -1 || idx > teamPlayers.size()) {
-            return null;
-        }
-        return tempArrayList.get(idx);
     }
 
     private void showHeightReport(Team team) {
@@ -201,17 +208,9 @@ public class Selections {
         }
     }
 
-    public Player promptCreatePlayer() throws IOException {
-        System.out.println("Creating a new player");
-        System.out.println("What is the players first name?");
-        String firstName = mReader.readLine().trim();
-        System.out.println("What is the players last name?");
-        String lastName = mReader.readLine().trim();
-        System.out.println("What is the players height in inches?");
-        int height = Integer.parseInt(mReader.readLine().trim());
-        System.out.println("What is the players previous experience?");
-        boolean experience = Boolean.parseBoolean(mReader.readLine().trim());
-        return new Player(firstName, lastName, height, experience);
+    public void addPlayer(Player player) {
+        mPlayers.add(player);
+        Collections.sort(mPlayers);
     }
 
     private void addPlayerToWaitingList(Player player) {
@@ -226,25 +225,60 @@ public class Selections {
         return mWaitingList.poll();
     }
 
-    private void promptReplacePlayer(Team team) throws IOException {
-        if (!mWaitingList.isEmpty()) {
-
-            System.out.println("Do you want to add a player from the waiting list? Yes or No:");
-            String response = mReader.readLine().trim();
-            if (response.equalsIgnoreCase("yes")) {
-                Player player = removePlayerFromWaitingList();
-                team.addPlayer(player);
-                System.out.printf("%s %s was added to %s",
-                        player.getFirstName(),
-                        player.getLastName(),
-                        team.getName());
-            }
+    private Player selectAvailablePlayer() throws IOException {
+        int idx = promptSelectPlayerIdx();
+        if (idx == -1 || idx > mPlayers.size()) {
+            return null;
         }
+        return mPlayers.get(idx);
     }
 
-    public void addPlayer(Player player) {
-        mPlayers.add(player);
-        Collections.sort(mPlayers);
+    private Player selectPlayerFromTeam(Set<Player> teamPlayers) throws IOException {
+        List <Player> tempArrayList = new ArrayList<>(teamPlayers);
+        Collections.sort(tempArrayList);
+        int idx = promptSelectPlayerIdx();
+        if (idx == -1 || idx > teamPlayers.size()) {
+            return null;
+        }
+        return tempArrayList.get(idx);
+    }
+
+    private void createTeams() throws IOException {
+        int maxNumberOfTeams = mPlayers.size();
+
+        String teamName1 = promptNewTeamName();
+        String teamCoach1 = promptNewTeamCoach();
+        Team newTeam1 = new Team(teamName1, teamCoach1);
+        mTeamsCollection.addTeam(newTeam1, maxNumberOfTeams);
+
+        String teamName2 = promptNewTeamName();
+        String teamCoach2 = promptNewTeamCoach();
+        Team newTeam2 = new Team(teamName2, teamCoach2);
+        mTeamsCollection.addTeam(newTeam2, maxNumberOfTeams);
+
+        List<Player> playersSortedBySkill = new ArrayList<>(mPlayers);
+        playersSortedBySkill.sort(new Comparator<Player>() {
+            @Override
+            public int compare(Player o1, Player o2) {
+                return Boolean.compare(o2.isPreviousExperience(), o1.isPreviousExperience());
+            }
+        });
+
+        while(newTeam1.getTeamPlayers().size() < 11 || newTeam2.getTeamPlayers().size() < 11) {
+            boolean switchTeam = true;
+            for (Player player : playersSortedBySkill) {
+               if (switchTeam) {
+                   newTeam1.addPlayer(player);
+                   switchTeam = false;
+               } else {
+                   newTeam2.addPlayer(player);
+                   switchTeam = true;
+               }
+            }
+        }
+
+        showPlayersOnTeam(newTeam1);
+        showPlayersOnTeam(newTeam2);
     }
 
     public void run() {
@@ -316,6 +350,9 @@ public class Selections {
                     case "roster":
                         Team rosterTeam = promptSelectTeam();
                         showPlayersOnTeam(rosterTeam);
+                        break;
+                    case "generate":
+                        createTeams();
                         break;
                     default:
                         System.out.printf("Unknown choice:  '%s'. Try again.  %n%n%n",
