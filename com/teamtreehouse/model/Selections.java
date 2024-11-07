@@ -22,6 +22,7 @@ public class Selections {
         mMenu.put("add", "Add player to a team");
         mMenu.put("remove", "Remove player from a team");
         mMenu.put("report", "View a report of a team by height");
+        mMenu.put("balance", "View a report teams by experience");
         mMenu.put("roster", "View team roster");
         mMenu.put("quit", "Exits the program");
 
@@ -136,6 +137,40 @@ public class Selections {
         }
     }
 
+    private Map<String, int[]> createBalanceReport() {
+        Set<Team> teams = mTeamsCollection.getTeams();
+        Map<String, int[]> balanceMap = new HashMap<>();
+
+        for (Team team : teams) {
+            balanceMap.put(team.getName(), new int[2]);
+            List<Player> players = team.getTeamPlayers();
+            int count1 = 0;
+            int count2 = 0;
+
+            for (Player player : players) {
+                if (player.isPreviousExperience()) {
+                    count1++;
+                } else {
+                    count2++;
+                }
+            }
+
+            balanceMap.get(team.getName())[0] += count1;
+            balanceMap.get(team.getName())[1] += count2;
+        }
+
+        return balanceMap;
+    }
+
+    private void showBalanceReport(Map<String, int[]> balanceMap) {
+        for (Map.Entry<String, int[]> entry : balanceMap.entrySet()) {
+            System.out.printf("%s:%n has experience: %d%n has no experience: %d%n",
+                    entry.getKey(),
+                    entry.getValue()[0],
+                    entry.getValue()[1]);
+        }
+    }
+
 
     public void run() {
         String choice = "";
@@ -147,13 +182,14 @@ public class Selections {
                         String teamName = promptNewTeamName();
                         String teamCoach = promptNewTeamCoach();
                         Team newTeam = new Team(teamName, teamCoach);
-                        boolean createResult = mTeamsCollection.addTeam(newTeam);
+                        int maxNumberOfTeams = mPlayers.length;
+                        boolean createResult = mTeamsCollection.addTeam(newTeam, maxNumberOfTeams);
                         if (createResult) {
                             System.out.printf("%s coached by %s added. %n",
                                     teamName,
                                     teamCoach);
                         } else {
-                            System.out.println("Cannot create duplicate team");
+                            System.out.println("Cannot create team");
                         }
                         break;
                     case "add":
@@ -188,6 +224,10 @@ public class Selections {
                     case "report":
                         Team heightReportTeam = promptSelectTeam();
                         showHeightReport(heightReportTeam);
+                        break;
+                    case "balance":
+                        Map<String, int[]> balanceMap = createBalanceReport();
+                        showBalanceReport(balanceMap);
                         break;
                     case "quit":
                         System.out.println("Goodbye!");
