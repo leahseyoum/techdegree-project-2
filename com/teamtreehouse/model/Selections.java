@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class Selections {
@@ -19,6 +20,7 @@ public class Selections {
         mMenu = new HashMap<>();
         mMenu.put("create", "Create a new team");
         mMenu.put("add", "Add player to a team");
+        mMenu.put("remove", "Remove player from a team");
         mMenu.put("quit", "Exit the program");
 
     }
@@ -60,8 +62,7 @@ public class Selections {
     }
 
     private Player promptSelectPlayer() throws IOException {
-        showPlayers();
-        System.out.println("Select a player: ");
+        System.out.println("Select a player by number: ");
         String playerString = mReader.readLine();
         int playerNumber = Integer.parseInt(playerString.trim());
         return mPlayers[playerNumber -= 1];
@@ -82,6 +83,21 @@ public class Selections {
 
     }
 
+    private void showPlayersOnTeam(Team team) throws IOException {
+        List<Player> players = team.getTeamPlayers();
+        int i = 1;
+        for (Player player : players) {
+            System.out.printf("%d). first name: %s last name: %s  height in inches: %d previous experience: %s %n",
+                    i,
+                    player.getFirstName(),
+                    player.getLastName(),
+                    player.getHeightInInches(),
+                    player.isPreviousExperience());
+            i++;
+        }
+    }
+
+
     public void run() {
         String choice = "";
         do {
@@ -96,16 +112,31 @@ public class Selections {
                         break;
                     case "add":
                         Team team = promptSelectTeam();
+                        showPlayers();
                         Player player = promptSelectPlayer();
                         boolean result = team.addPlayer(player);
                         if (!result) {
-                            System.out.println("You cannot add this player %n");
+                            System.out.printf("You cannot add this player %n");
                         } else {
                             System.out.printf("%s %s added to %s %n%n",
                                     player.getFirstName(),
                                     player.getLastName(),
                                     team.getName());
                         }
+                        break;
+                    case "remove":
+                        Team removalTeam = promptSelectTeam();
+                        showPlayersOnTeam(removalTeam);
+                        Player removalPlayer = promptSelectPlayer();
+                        boolean removalResult = removalTeam.removePlayer(removalPlayer);
+                                if (!removalResult) {
+                                    System.out.println("You cannot remove this player");
+                                } else {
+                                    System.out.printf("%s %s was removed from %s%n",
+                                            removalPlayer.getFirstName(),
+                                            removalPlayer.getLastName(),
+                                            removalTeam.getName());
+                                }
                         break;
                     case "quit":
                         System.out.println("Goodbye!");

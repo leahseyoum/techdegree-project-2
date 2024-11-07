@@ -1,5 +1,6 @@
 package com.teamtreehouse.model;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -18,7 +19,7 @@ public class TeamsCollection {
         return mTeams;
     }
 
-    public Team getTeamByName(String name) {
+    public Team getTeamByName(String name)  {
         for (Team team : mTeams) {
             if (team.getName().equals(name)) {
                 return team;

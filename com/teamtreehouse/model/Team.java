@@ -5,12 +5,12 @@ import java.util.List;
 public class Team {
     private String mName;
     private String mCoach;
-    private List<Player> mPlayers;
+    private List<Player> mTeamPlayers;
 
     public Team(String name, String coach) {
         mName = name;
         mCoach = coach;
-        mPlayers = new ArrayList<>();
+        mTeamPlayers = new ArrayList<Player>();
     }
 
    public String getName() {
@@ -21,9 +21,21 @@ public class Team {
         return mCoach;
    }
 
+    public List<Player> getTeamPlayers() {
+        return mTeamPlayers;
+    }
+
    public boolean addPlayer(Player player) {
-        if (!mPlayers.contains(player) && mPlayers.size() < 11) {
-            mPlayers.add(player);
+        if (!mTeamPlayers.contains(player) && mTeamPlayers.size() < 11) {
+            mTeamPlayers.add(player);
+            return true;
+        }
+        return false;
+   }
+
+   public boolean removePlayer(Player player) {
+        if (mTeamPlayers.contains(player)) {
+            mTeamPlayers.remove(player);
             return true;
         }
         return false;
