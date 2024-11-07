@@ -1,11 +1,6 @@
 package com.teamtreehouse.model;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.Comparator;
+import java.util.*;
 
 public class TeamsCollection {
     private Set<Team> mTeams;
@@ -25,15 +20,11 @@ public class TeamsCollection {
         return false;
     }
 
-    public Set<Team> getTeams() {
+
+    public List<Team> getTeams() {
         List<Team> list = new ArrayList<>(mTeams);
-        list.sort( new Comparator<Team>() {
-            @Override
-            public int compare(Team o1, Team o2) {
-                return o1.getName().compareTo(o2.getName());
-            }
-        });
-        return mTeams;
+        Collections.sort(list);
+        return list;
     }
 
     public Team getTeamByName(String name)  {

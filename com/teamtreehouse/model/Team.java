@@ -1,16 +1,16 @@
 package com.teamtreehouse.model;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Set;
+import java.util.HashSet;
 
-public class Team {
+public class Team  implements Comparable<Team>{
     private String mName;
     private String mCoach;
-    private List<Player> mTeamPlayers;
+    private Set<Player> mTeamPlayers;
 
     public Team(String name, String coach) {
         mName = name;
         mCoach = coach;
-        mTeamPlayers = new ArrayList<Player>();
+        mTeamPlayers = new HashSet<Player>();
     }
 
    public String getName() {
@@ -21,12 +21,12 @@ public class Team {
         return mCoach;
    }
 
-    public List<Player> getTeamPlayers() {
+    public Set<Player> getTeamPlayers() {
         return mTeamPlayers;
     }
 
    public boolean addPlayer(Player player) {
-        if (!mTeamPlayers.contains(player) && mTeamPlayers.size() < 11) {
+        if (mTeamPlayers.size() < 11) {
             mTeamPlayers.add(player);
             return true;
         }
@@ -40,6 +40,11 @@ public class Team {
         }
         return false;
    }
+
+    @Override
+    public int compareTo(Team other) {
+        return getName().compareTo(other.getName());
+    }
 
     @Override
     public boolean equals(Object o) {

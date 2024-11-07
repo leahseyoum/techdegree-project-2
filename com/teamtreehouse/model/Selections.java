@@ -74,13 +74,20 @@ public class Selections {
         System.out.println("Select a player by number: ");
         String playerString = mReader.readLine();
         int playerNumber = Integer.parseInt(playerString.trim());
-        return mPlayers[playerNumber -= 1];
+        Player player = mPlayers[playerNumber -= 1];
+        if (notAvailablePlayers.contains(player)) {
+            return null;
+        }
+        return player;
     }
 
     private void showTeams() {
+        int i = 1;
        for (Team team : mTeamsCollection.getTeams()) {
-           System.out.printf("%s %n",
+           System.out.printf("%d). %s %n",
+                   i,
                    team.getName());
+           i++;
        }
     }
 
@@ -93,10 +100,10 @@ public class Selections {
     }
 
     private void showPlayersOnTeam(Team team) throws IOException {
-        List<Player> players = team.getTeamPlayers();
-        Collections.sort(players);
+        Set<Player> players = team.getTeamPlayers();
+        Set<Player> sortedSet = new TreeSet<>(players);
         int i = 1;
-        for (Player player : players) {
+        for (Player player : sortedSet) {
             System.out.printf("%d). first name: %s last name: %s  height in inches: %d previous experience: %s %n",
                     i,
                     player.getFirstName(),
@@ -104,11 +111,12 @@ public class Selections {
                     player.getHeightInInches(),
                     player.isPreviousExperience());
             i++;
+
         }
     }
 
     private void showHeightReport(Team team) {
-        List<Player> players = team.getTeamPlayers();
+        Set<Player> players = team.getTeamPlayers();
         Map<String, ArrayList<Player>> heightMap = new HashMap<>();
         heightMap.put("35in - 40in", new ArrayList<>());
         heightMap.put("41in - 46in", new ArrayList<>());
@@ -125,8 +133,9 @@ public class Selections {
         }
 
         for (Map.Entry<String, ArrayList<Player>> entry : heightMap.entrySet()) {
-            System.out.printf("%s:%n",
-                    entry.getKey());
+            System.out.printf("%s:%n count:%d%n",
+                    entry.getKey(),
+                    entry.getValue().size());
             for(Player player : entry.getValue()) {
                 System.out.printf("first name: %s last name: %s  height in inches: %d previous experience: %s %n",
                         player.getFirstName(),
@@ -138,12 +147,12 @@ public class Selections {
     }
 
     private Map<String, int[]> createBalanceReport() {
-        Set<Team> teams = mTeamsCollection.getTeams();
+        List<Team> teams = mTeamsCollection.getTeams();
         Map<String, int[]> balanceMap = new HashMap<>();
 
         for (Team team : teams) {
             balanceMap.put(team.getName(), new int[2]);
-            List<Player> players = team.getTeamPlayers();
+            Set<Player> players = team.getTeamPlayers();
             int count1 = 0;
             int count2 = 0;
 
@@ -164,10 +173,14 @@ public class Selections {
 
     private void showBalanceReport(Map<String, int[]> balanceMap) {
         for (Map.Entry<String, int[]> entry : balanceMap.entrySet()) {
-            System.out.printf("%s:%n has experience: %d%n has no experience: %d%n",
+
+            float percentageOfExperiencedPlayers = ((float)entry.getValue()[0] * 100.0f)/ ((float)entry.getValue()[0] + (float)entry.getValue()[1]);
+
+                    System.out.printf("%s:%n has experience: %d%n has no experience: %d%n percentage of experienced players: %f%n%n",
                     entry.getKey(),
                     entry.getValue()[0],
-                    entry.getValue()[1]);
+                    entry.getValue()[1],
+                    percentageOfExperiencedPlayers);
         }
     }
 
@@ -197,7 +210,7 @@ public class Selections {
                         showPlayers();
                         Player player = promptSelectPlayer();
                         boolean addResult = team.addPlayer(player);
-                        if (!addResult) {
+                        if (!addResult || player == null) {
                             System.out.printf("You cannot add this player %n");
                         } else {
                             notAvailablePlayers.add(player);
