@@ -1,9 +1,10 @@
 package com.teamtreehouse.model;
+import java.util.Arrays;
 
 public class Players {
 
   public static Player[] load() {
-    return new Player[] {
+      Player[] players = new Player[] {
       new Player("Joe", "Smith", 42, true),
       new Player("Jill", "Tanner", 36, true),
       new Player("Bill", "Bon", 43, true),
@@ -38,7 +39,8 @@ public class Players {
       new Player("Johnny", "Thunder", 47, false),
       new Player("Ryan", "Creedson", 43, false)
     };
-
+    Arrays.sort(players);
+    return players;
   }
 
 }

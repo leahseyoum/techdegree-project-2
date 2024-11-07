@@ -3,9 +3,7 @@ package com.teamtreehouse.model;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class Selections {
     private BufferedReader mReader;
@@ -38,13 +36,13 @@ public class Selections {
     private String promptNewTeamName() throws IOException {
         System.out.println("Choose a team name: ");
         String teamName = mReader.readLine();
-        return teamName.trim();
+        return teamName.trim().toLowerCase();
     }
 
     private String promptNewTeamCoach() throws IOException {
         System.out.println("Choose a team coach: ");
         String teamCoach = mReader.readLine();
-        return teamCoach.trim();
+        return teamCoach.trim().toLowerCase();
     }
 
     private void showPlayers() {
@@ -79,12 +77,13 @@ public class Selections {
         showTeams();
         System.out.println("Select a team: ");
         String teamString = mReader.readLine();
-        return mTeamsCollection.getTeamByName(teamString);
-
+        String finalTeamString = teamString.trim().toLowerCase();
+        return mTeamsCollection.getTeamByName(finalTeamString);
     }
 
     private void showPlayersOnTeam(Team team) throws IOException {
         List<Player> players = team.getTeamPlayers();
+        Collections.sort(players);
         int i = 1;
         for (Player player : players) {
             System.out.printf("%d). first name: %s last name: %s  height in inches: %d previous experience: %s %n",
