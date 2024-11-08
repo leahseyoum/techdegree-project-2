@@ -234,8 +234,8 @@ public class Selections {
     private void createTeams() throws IOException {
 
         Team newTeam1 = createTeam();
-
         Team newTeam2 = createTeam();
+        Team newTeam3 = createTeam();
 
         List<Player> playersSortedBySkill = new ArrayList<>(mPlayers);
         playersSortedBySkill.sort(new Comparator<Player>() {
@@ -245,25 +245,33 @@ public class Selections {
             }
         });
 
-        boolean switchTeam = true;
+        int teamIdx = 0;
         for (Player player : playersSortedBySkill) {
-            if (switchTeam) {
-                if(newTeam1.addPlayer(player)) {
-                    mPlayers.remove(player);
-                };
-                switchTeam = false;
-            } else {
-                if(newTeam2.addPlayer(player)) {
-                    mPlayers.remove(player);
-                }
-                switchTeam = true;
+            switch (teamIdx) {
+                case 0:
+                    if(newTeam1.addPlayer(player)) {
+                        mPlayers.remove(player);
+                    };
+                    break;
+                case 1:
+                    if(newTeam2.addPlayer(player)) {
+                        mPlayers.remove(player);
+                    }
+                    break;
+                case 2:
+                    if(newTeam3.addPlayer(player)) {
+                        mPlayers.remove(player);
+                    }
+                    break;
             }
+            teamIdx = (teamIdx + 1) % 3;
 
         }
 
 
         showPlayersOnTeam(newTeam1);
         showPlayersOnTeam(newTeam2);
+        showPlayersOnTeam(newTeam3);
     }
 
     // adds player back to available players after being removed from team
