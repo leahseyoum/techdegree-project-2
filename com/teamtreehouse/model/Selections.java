@@ -11,14 +11,14 @@ public class Selections {
     private TeamsCollection mTeamsCollection;
     private List<Player> mPlayers;
     private Queue<Player> mWaitingList;
-    private int maxNumberOfTeams;
+//    private int maxNumberOfTeams;
 
     public Selections(TeamsCollection teamsCollection) {
         mTeamsCollection = teamsCollection;
         mReader = new BufferedReader(new InputStreamReader(System.in));
         mPlayers = new ArrayList<>(Arrays.asList(Players.load()));
         mWaitingList = new ArrayDeque<>();
-        maxNumberOfTeams = Players.load().length;
+//        maxNumberOfTeams = Players.load().length;
         mMenu = new HashMap<>();
         mMenu.put("create", "Create a new team");
         mMenu.put("add", "Add player to a team");
@@ -178,7 +178,6 @@ public class Selections {
 
     private void showBalanceReport(Map<String, int[]> balanceMap) {
         for (Map.Entry<String, int[]> entry : balanceMap.entrySet()) {
-
             float percentageOfExperiencedPlayers = ((float)entry.getValue()[0] * 100.0f)/ ((float)entry.getValue()[0] + (float)entry.getValue()[1]);
 
             System.out.printf("%s:%n has experience: %d%n has no experience: %d%n percentage of experienced players: %f%n%n",
@@ -218,6 +217,7 @@ public class Selections {
         String teamName = promptNewTeamName();
         String teamCoach = promptNewTeamCoach();
         Team newTeam = new Team(teamName, teamCoach);
+        int maxNumberOfTeams = mPlayers.size();
         boolean createResult = mTeamsCollection.addTeam(newTeam, maxNumberOfTeams);
         if (createResult) {
             System.out.printf("%s coached by %s created. %n",
