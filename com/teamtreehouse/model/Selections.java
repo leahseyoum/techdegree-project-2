@@ -11,12 +11,14 @@ public class Selections {
     private TeamsCollection mTeamsCollection;
     private List<Player> mPlayers;
     private Queue<Player> mWaitingList;
+    private int maxNumberOfTeams;
 
     public Selections(TeamsCollection teamsCollection) {
         mTeamsCollection = teamsCollection;
         mReader = new BufferedReader(new InputStreamReader(System.in));
         mPlayers = new ArrayList<>(Arrays.asList(Players.load()));
         mWaitingList = new ArrayDeque<>();
+        maxNumberOfTeams = Players.load().length;
         mMenu = new HashMap<>();
         mMenu.put("create", "Create a new team");
         mMenu.put("add", "Add player to a team");
@@ -68,6 +70,7 @@ public class Selections {
         return mTeamsCollection.getTeamByName(finalTeamString);
     }
 
+    // prompts to create player to add to waiting list
     public Player promptCreatePlayer() throws IOException {
         System.out.println("Creating a new player");
         System.out.println("What is the players first name?");
@@ -81,6 +84,7 @@ public class Selections {
         return new Player(firstName, lastName, height, experience);
     }
 
+    // prompts to add player from waiting list to team after removal of another player
     private void promptReplacePlayer(Team team) throws IOException {
         if (!mWaitingList.isEmpty()) {
 
@@ -97,6 +101,7 @@ public class Selections {
         }
     }
 
+    //shows all players
     private void showPlayers() {
         int i = 1;
         for (Player player : mPlayers) {
@@ -121,6 +126,7 @@ public class Selections {
         }
     }
 
+    //shows player on specific team
     private void showPlayersOnTeam(Team team) throws IOException {
         Set<Player> players = team.getTeamPlayers();
         Set<Player> sortedSet = new TreeSet<>(players);
@@ -170,6 +176,19 @@ public class Selections {
         }
     }
 
+    private void showBalanceReport(Map<String, int[]> balanceMap) {
+        for (Map.Entry<String, int[]> entry : balanceMap.entrySet()) {
+
+            float percentageOfExperiencedPlayers = ((float)entry.getValue()[0] * 100.0f)/ ((float)entry.getValue()[0] + (float)entry.getValue()[1]);
+
+            System.out.printf("%s:%n has experience: %d%n has no experience: %d%n percentage of experienced players: %f%n%n",
+                    entry.getKey(),
+                    entry.getValue()[0],
+                    entry.getValue()[1],
+                    percentageOfExperiencedPlayers);
+        }
+    }
+
     private Map<String, int[]> createBalanceReport() {
         List<Team> teams = mTeamsCollection.getTeams();
         Map<String, int[]> balanceMap = new HashMap<>();
@@ -195,20 +214,60 @@ public class Selections {
         return balanceMap;
     }
 
-    private void showBalanceReport(Map<String, int[]> balanceMap) {
-        for (Map.Entry<String, int[]> entry : balanceMap.entrySet()) {
-
-            float percentageOfExperiencedPlayers = ((float)entry.getValue()[0] * 100.0f)/ ((float)entry.getValue()[0] + (float)entry.getValue()[1]);
-
-                    System.out.printf("%s:%n has experience: %d%n has no experience: %d%n percentage of experienced players: %f%n%n",
-                    entry.getKey(),
-                    entry.getValue()[0],
-                    entry.getValue()[1],
-                    percentageOfExperiencedPlayers);
+    private Team createTeam() throws IOException {
+        String teamName = promptNewTeamName();
+        String teamCoach = promptNewTeamCoach();
+        Team newTeam = new Team(teamName, teamCoach);
+        boolean createResult = mTeamsCollection.addTeam(newTeam, maxNumberOfTeams);
+        if (createResult) {
+            System.out.printf("%s coached by %s created. %n",
+                    teamName,
+                    teamCoach);
+        } else {
+            System.out.println("Cannot create team");
         }
+
+        return newTeam;
     }
 
-    public void addPlayer(Player player) {
+    // generates teams by iterating through sorted list of players by experience
+    private void createTeams() throws IOException {
+
+        Team newTeam1 = createTeam();
+
+        Team newTeam2 = createTeam();
+
+        List<Player> playersSortedBySkill = new ArrayList<>(mPlayers);
+        playersSortedBySkill.sort(new Comparator<Player>() {
+            @Override
+            public int compare(Player o1, Player o2) {
+                return Boolean.compare(o2.isPreviousExperience(), o1.isPreviousExperience());
+            }
+        });
+
+        boolean switchTeam = true;
+        for (Player player : playersSortedBySkill) {
+            if (switchTeam) {
+                if(newTeam1.addPlayer(player)) {
+                    mPlayers.remove(player);
+                };
+                switchTeam = false;
+            } else {
+                if(newTeam2.addPlayer(player)) {
+                    mPlayers.remove(player);
+                }
+                switchTeam = true;
+            }
+
+        }
+
+
+        showPlayersOnTeam(newTeam1);
+        showPlayersOnTeam(newTeam2);
+    }
+
+    // adds player back to available players after being removed from team
+    public void addPlayerBack(Player player) {
         mPlayers.add(player);
         Collections.sort(mPlayers);
     }
@@ -226,6 +285,7 @@ public class Selections {
     }
 
     private Player selectAvailablePlayer() throws IOException {
+        Collections.sort(mPlayers);
         int idx = promptSelectPlayerIdx();
         if (idx == -1 || idx > mPlayers.size()) {
             return null;
@@ -243,44 +303,6 @@ public class Selections {
         return tempArrayList.get(idx);
     }
 
-    private void createTeams() throws IOException {
-        int maxNumberOfTeams = mPlayers.size();
-
-        String teamName1 = promptNewTeamName();
-        String teamCoach1 = promptNewTeamCoach();
-        Team newTeam1 = new Team(teamName1, teamCoach1);
-        mTeamsCollection.addTeam(newTeam1, maxNumberOfTeams);
-
-        String teamName2 = promptNewTeamName();
-        String teamCoach2 = promptNewTeamCoach();
-        Team newTeam2 = new Team(teamName2, teamCoach2);
-        mTeamsCollection.addTeam(newTeam2, maxNumberOfTeams);
-
-        List<Player> playersSortedBySkill = new ArrayList<>(mPlayers);
-        playersSortedBySkill.sort(new Comparator<Player>() {
-            @Override
-            public int compare(Player o1, Player o2) {
-                return Boolean.compare(o2.isPreviousExperience(), o1.isPreviousExperience());
-            }
-        });
-
-        while(newTeam1.getTeamPlayers().size() < 11 || newTeam2.getTeamPlayers().size() < 11) {
-            boolean switchTeam = true;
-            for (Player player : playersSortedBySkill) {
-               if (switchTeam) {
-                   newTeam1.addPlayer(player);
-                   switchTeam = false;
-               } else {
-                   newTeam2.addPlayer(player);
-                   switchTeam = true;
-               }
-            }
-        }
-
-        showPlayersOnTeam(newTeam1);
-        showPlayersOnTeam(newTeam2);
-    }
-
     public void run() {
         String choice = "";
         do {
@@ -288,49 +310,46 @@ public class Selections {
                 choice = promptAction();
                 switch (choice) {
                     case "create":
-                        String teamName = promptNewTeamName();
-                        String teamCoach = promptNewTeamCoach();
-                        Team newTeam = new Team(teamName, teamCoach);
-                        int maxNumberOfTeams = mPlayers.size();
-                        boolean createResult = mTeamsCollection.addTeam(newTeam, maxNumberOfTeams);
-                        if (createResult) {
-                            System.out.printf("%s coached by %s added. %n",
-                                    teamName,
-                                    teamCoach);
-                        } else {
-                            System.out.println("Cannot create team");
-                        }
+                        createTeam();
                         break;
                     case "add":
                         Team team = promptSelectTeam();
-                        showPlayers();
-                        Player player = selectAvailablePlayer();
-                        boolean addResult = team.addPlayer(player);
-                        if (!addResult || player == null) {
-                            System.out.printf("You cannot add this player %n");
+                        if (!mPlayers.isEmpty()) {
+                            showPlayers();
+                            Player player = selectAvailablePlayer();
+                            boolean addResult = team.addPlayer(player);
+                            if (!addResult || player == null) {
+                                System.out.printf("You cannot add this player %n");
+                            } else {
+                                mPlayers.remove(player);
+                                System.out.printf("%s %s added to %s %n%n",
+                                        player.getFirstName(),
+                                        player.getLastName(),
+                                        team.getName());
+                            }
                         } else {
-                            mPlayers.remove(player);
-                            System.out.printf("%s %s added to %s %n%n",
-                                    player.getFirstName(),
-                                    player.getLastName(),
-                                    team.getName());
+                            System.out.println("There are no available players");
                         }
                         break;
                     case "remove":
                         Team removalTeam = promptSelectTeam();
-                        showPlayersOnTeam(removalTeam);
-                        Player removalPlayer = selectPlayerFromTeam(removalTeam.getTeamPlayers());
-                        boolean removalResult = removalTeam.removePlayer(removalPlayer);
-                                if (!removalResult) {
-                                    System.out.println("You cannot remove this player");
-                                } else {
-                                    addPlayer(removalPlayer);
-                                    System.out.printf("%s %s was removed from %s%n",
-                                            removalPlayer.getFirstName(),
-                                            removalPlayer.getLastName(),
-                                            removalTeam.getName());
-                                }
-                        promptReplacePlayer(removalTeam);
+                        if(!removalTeam.getTeamPlayers().isEmpty()) {
+                            showPlayersOnTeam(removalTeam);
+                            Player removalPlayer = selectPlayerFromTeam(removalTeam.getTeamPlayers());
+                            boolean removalResult = removalTeam.removePlayer(removalPlayer);
+                            if (!removalResult) {
+                                System.out.println("You cannot remove this player");
+                            } else {
+                                addPlayerBack(removalPlayer);
+                                System.out.printf("%s %s was removed from %s%n",
+                                        removalPlayer.getFirstName(),
+                                        removalPlayer.getLastName(),
+                                        removalTeam.getName());
+                            }
+                            promptReplacePlayer(removalTeam);
+                        } else {
+                            System.out.println("This team has no players");
+                        }
                         break;
                     case "report":
                         Team heightReportTeam = promptSelectTeam();
