@@ -11,14 +11,13 @@ public class Selections {
     private TeamsCollection mTeamsCollection;
     private List<Player> mPlayers;
     private Queue<Player> mWaitingList;
-//    private int maxNumberOfTeams;
+
 
     public Selections(TeamsCollection teamsCollection) {
         mTeamsCollection = teamsCollection;
         mReader = new BufferedReader(new InputStreamReader(System.in));
         mPlayers = new ArrayList<>(Arrays.asList(Players.load()));
         mWaitingList = new ArrayDeque<>();
-//        maxNumberOfTeams = Players.load().length;
         mMenu = new HashMap<>();
         mMenu.put("create", "Create a new team");
         mMenu.put("add", "Add player to a team");
@@ -217,8 +216,8 @@ public class Selections {
         String teamName = promptNewTeamName();
         String teamCoach = promptNewTeamCoach();
         Team newTeam = new Team(teamName, teamCoach);
-        int maxNumberOfTeams = mPlayers.size();
-        boolean createResult = mTeamsCollection.addTeam(newTeam, maxNumberOfTeams);
+//        int maxNumberOfTeams = mPlayers.size();
+        boolean createResult = mTeamsCollection.addTeam(newTeam);
         if (createResult) {
             System.out.printf("%s coached by %s created. %n",
                     teamName,
@@ -318,7 +317,11 @@ public class Selections {
                 choice = promptAction();
                 switch (choice) {
                     case "create":
-                        createTeam();
+                        if(!mPlayers.isEmpty()) {
+                            createTeam();
+                        } else {
+                            System.out.println("Cannot create team, there are no available players.");
+                        }
                         break;
                     case "add":
                         Team team = promptSelectTeam();
@@ -379,7 +382,11 @@ public class Selections {
                         showPlayersOnTeam(rosterTeam);
                         break;
                     case "generate":
-                        createTeams();
+                        if(!mPlayers.isEmpty()) {
+                            createTeams();
+                        } else {
+                            System.out.println("Cannot create team, there are no available players.");
+                        }
                         break;
                     default:
                         System.out.printf("Unknown choice:  '%s'. Try again.  %n%n%n",

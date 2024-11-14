@@ -15,10 +15,10 @@ public class TeamsCollection {
     }
 
 
-    public boolean addTeam(Team team, int maxNumberOfTeams) {
-        if (mTeams.size() >= maxNumberOfTeams) {
-            return false;
-        }
+    public boolean addTeam(Team team) {
+//        if (mTeams.size() >= maxNumberOfTeams) {
+//            return false;
+//        }
         return mTeams.add(team);
     }
 
