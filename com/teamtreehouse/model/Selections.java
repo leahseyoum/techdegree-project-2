@@ -31,6 +31,7 @@ public class Selections {
 
     }
 
+    //prompt methods
     private String promptAction() throws IOException {
         System.out.printf("%nMenu%n");
         for (Map.Entry<String, String> option : mMenu.entrySet()) {
@@ -115,7 +116,7 @@ public class Selections {
         }
     }
 
-
+    //shows all teams
     private void showTeams() {
         int i = 1;
         for (Team team : mTeamsCollection.getTeams()) {
@@ -216,7 +217,6 @@ public class Selections {
         String teamName = promptNewTeamName();
         String teamCoach = promptNewTeamCoach();
         Team newTeam = new Team(teamName, teamCoach);
-//        int maxNumberOfTeams = mPlayers.size();
         boolean createResult = mTeamsCollection.addTeam(newTeam);
         if (createResult) {
             System.out.printf("%s coached by %s created. %n",
